@@ -1,0 +1,107 @@
+{% extends "bookings/base.html" %}
+{% block title %}Book with {{ doctor.full_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'bookings:doctor_detail' doctor.id %}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left me-1"></i>Back to {{ doctor.full_name }}'s Profile
+  </a>
+</div>
+
+<div class="row g-4">
+
+  {# ── Booking form ──────────────────────────────────────────────────── #}
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header">
+        <h2 class="h5 mb-0">
+          <i class="bi bi-calendar-plus me-2"></i>
+          Book with {{ doctor.full_name }}
+        </h2>
+      </div>
+      <div class="card-body">
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Start Time</label>
+            {{ form.start }}
+            {% if form.start.errors %}
+              <div class="text-danger small mt-1">{{ form.start.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">End Time</label>
+            {{ form.end }}
+            {% if form.end.errors %}
+              <div class="text-danger small mt-1">{{ form.end.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold">
+              Reason for Visit <span class="text-muted fw-normal">(optional)</span>
+            </label>
+            {{ form.reason }}
+          </div>
+
+          <button type="submit" class="btn btn-success w-100">
+            <i class="bi bi-send me-1"></i> Send Request
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {# ── Sidebar: availability + how it works ─────────────────────────── #}
+  <div class="col-lg-6">
+
+    {% if availability %}
+      <div class="card shadow-sm mb-3">
+        <div class="card-header">
+          <h6 class="mb-0"><i class="bi bi-calendar-check me-2 text-success"></i>Available Time Slots</h6>
+        </div>
+        <ul class="list-group list-group-flush">
+          {% for slot in availability %}
+            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+              <div class="small">
+                <strong>{{ slot.start|date:"D d M Y" }}</strong><br>
+                <span class="text-muted">{{ slot.start|time:"H:i" }} – {{ slot.end|time:"H:i" }}</span>
+              </div>
+              {% if slot.note %}
+                <span class="text-muted small fst-italic">{{ slot.note }}</span>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% else %}
+      <div class="alert alert-warning">
+        <i class="bi bi-calendar-x me-2"></i>
+        This doctor has no upcoming availability. You may still submit a request.
+      </div>
+    {% endif %}
+
+    <div class="card bg-light border-0">
+      <div class="card-body">
+        <h6 class="card-title"><i class="bi bi-info-circle me-1"></i> How it works</h6>
+        <ol class="ps-3 small text-muted mb-0">
+          <li class="mb-1">Pick a time within one of the doctor's available slots above.</li>
+          <li class="mb-1">Submit — your request will be marked <strong>Pending</strong>.</li>
+          <li>The doctor reviews and <strong>Confirms</strong> it. You'll see the update in My Appointments.</li>
+        </ol>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

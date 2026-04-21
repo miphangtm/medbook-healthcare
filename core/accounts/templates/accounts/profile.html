@@ -1,0 +1,156 @@
+{% extends "bookings/base.html" %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0"><i class="bi bi-person-circle me-2"></i>My Profile</h1>
+  <span class="badge bg-primary fs-6">
+    {% if is_doctor %}Doctor{% elif is_patient %}Patient{% else %}No Role{% endif %}
+  </span>
+</div>
+
+<div class="row g-4">
+
+  {# ── Edit form ─────────────────────────────────────────────────────── #}
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-pencil me-2"></i>Edit Details</h5>
+      </div>
+      <div class="card-body">
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">First Name</label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}
+                <div class="text-danger small mt-1">{{ form.first_name.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Last Name</label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}
+                <div class="text-danger small mt-1">{{ form.last_name.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Email</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+              <div class="text-danger small mt-1">{{ form.email.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Phone Number</label>
+            {{ form.phone }}
+          </div>
+
+          {# Doctor-only fields #}
+          {% if is_doctor %}
+            <hr>
+            <h6 class="text-muted mb-3">Doctor Details</h6>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Specialty</label>
+              {{ form.specialty }}
+              {% if form.specialty.errors %}
+                <div class="text-danger small mt-1">{{ form.specialty.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Bio <span class="text-muted fw-normal">(shown to patients)</span></label>
+              {{ form.bio }}
+            </div>
+          {% endif %}
+
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-circle me-1"></i> Save Changes
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {# ── Sidebar: account info + quick links ───────────────────────────── #}
+  <div class="col-lg-5">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Account Info</h5>
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0 small">
+          <dt class="col-sm-5">Username</dt>
+          <dd class="col-sm-7">{{ request.user.username }}</dd>
+
+          <dt class="col-sm-5">Member since</dt>
+          <dd class="col-sm-7">{{ request.user.date_joined|date:"d M Y" }}</dd>
+
+          <dt class="col-sm-5">Role</dt>
+          <dd class="col-sm-7">
+            {% if is_doctor %}
+              <span class="badge bg-primary">Doctor</span>
+              {% if role_profile.specialty %}— {{ role_profile.specialty }}{% endif %}
+            {% elif is_patient %}
+              <span class="badge bg-success">Patient</span>
+            {% else %}
+              <span class="badge bg-secondary">Unassigned</span>
+            {% endif %}
+          </dd>
+
+          {% if role_profile.phone %}
+            <dt class="col-sm-5">Phone</dt>
+            <dd class="col-sm-7">{{ role_profile.phone }}</dd>
+          {% endif %}
+
+          {% if is_patient and role_profile.date_of_birth %}
+            <dt class="col-sm-5">Date of Birth</dt>
+            <dd class="col-sm-7">{{ role_profile.date_of_birth|date:"d M Y" }}</dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Quick Links</h5>
+      </div>
+      <div class="list-group list-group-flush">
+        {% if is_patient %}
+          <a href="{% url 'bookings:my_appointments' %}" class="list-group-item list-group-item-action">
+            <i class="bi bi-calendar-check me-2 text-primary"></i>My Appointments
+          </a>
+          <a href="{% url 'bookings:doctor_list' %}" class="list-group-item list-group-item-action">
+            <i class="bi bi-search me-2 text-success"></i>Find a Doctor
+          </a>
+        {% endif %}
+        {% if is_doctor %}
+          <a href="{% url 'bookings:doctor_appointments' %}" class="list-group-item list-group-item-action">
+            <i class="bi bi-clipboard2-pulse me-2 text-primary"></i>My Appointments
+          </a>
+          <a href="{% url 'bookings:availability_list' %}" class="list-group-item list-group-item-action">
+            <i class="bi bi-calendar-week me-2 text-success"></i>Manage Availability
+          </a>
+        {% endif %}
+        <a href="{% url 'accounts:password_change' %}" class="list-group-item list-group-item-action">
+          <i class="bi bi-shield-lock me-2 text-warning"></i>Change Password
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

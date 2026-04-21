@@ -1,0 +1,31 @@
+{% extends "bookings/base.html" %}
+{% block title %}Confirm Action{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card border-danger shadow-sm">
+      <div class="card-header bg-danger text-white">
+        <h2 class="h5 mb-0">
+          <i class="bi bi-exclamation-triangle me-2"></i>{{ action_label|default:"Confirm" }}
+        </h2>
+      </div>
+      <div class="card-body">
+        <p class="mb-2">You are about to act on this <strong>{{ type }}</strong>:</p>
+        <div class="alert alert-secondary py-2">{{ object }}</div>
+        <p class="text-muted small mb-4">This action cannot be undone.</p>
+
+        <form method="post" class="d-flex gap-2">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-check-circle me-1"></i> Yes, {{ action_label|default:"Confirm" }}
+          </button>
+          <a href="{{ cancel_url }}" class="btn btn-outline-secondary">
+            <i class="bi bi-x me-1"></i> Cancel
+          </a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

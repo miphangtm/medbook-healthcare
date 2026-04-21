@@ -1,0 +1,66 @@
+{% extends "bookings/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'bookings:availability_list' %}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left me-1"></i>Back to Availability
+  </a>
+</div>
+
+<div class="row">
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header">
+        <h2 class="h5 mb-0">
+          <i class="bi bi-calendar-plus me-2"></i>{{ title }}
+        </h2>
+      </div>
+      <div class="card-body">
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Start Time</label>
+            {{ form.start }}
+            {% if form.start.errors %}
+              <div class="text-danger small mt-1">{{ form.start.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">End Time</label>
+            {{ form.end }}
+            {% if form.end.errors %}
+              <div class="text-danger small mt-1">{{ form.end.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold">
+              Note <span class="text-muted fw-normal">(optional)</span>
+            </label>
+            {{ form.note }}
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-circle me-1"></i> Save
+            </button>
+            <a href="{% url 'bookings:availability_list' %}" class="btn btn-outline-secondary">
+              Cancel
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

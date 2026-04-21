@@ -1,0 +1,63 @@
+{% extends "bookings/base.html" %}
+{% block title %}Find a Doctor{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0"><i class="bi bi-people me-2"></i>Find a Doctor</h1>
+</div>
+
+<form method="get" class="mb-4">
+  <div class="input-group shadow-sm">
+    <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+    <input type="text" name="q" value="{{ query }}" class="form-control border-start-0"
+           placeholder="Search by name or specialty…" autofocus>
+    <button class="btn btn-primary" type="submit">Search</button>
+    {% if query %}
+      <a href="{% url 'bookings:doctor_list' %}" class="btn btn-outline-secondary">Clear</a>
+    {% endif %}
+  </div>
+</form>
+
+{% if query %}
+  <p class="text-muted mb-3 small">
+    Showing results for "<strong>{{ query }}</strong>" —
+    {{ page_obj.paginator.count }} doctor{{ page_obj.paginator.count|pluralize }} found.
+  </p>
+{% endif %}
+
+<div class="row g-3">
+  {% for doctor in page_obj %}
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i class="bi bi-person-badge me-1 text-primary"></i>
+            {{ doctor.full_name }}
+          </h5>
+          <p class="card-subtitle mb-2 text-muted small">
+            <i class="bi bi-clipboard2-heart me-1"></i>
+            {{ doctor.specialty|default:"General Practice" }}
+          </p>
+          {% if doctor.bio %}
+            <p class="card-text small text-muted mt-2">{{ doctor.bio|truncatechars:110 }}</p>
+          {% endif %}
+        </div>
+        <div class="card-footer bg-transparent border-top-0 pt-0">
+          <a href="{% url 'bookings:doctor_detail' doctor.id %}" class="btn btn-sm btn-primary w-100">
+            <i class="bi bi-calendar-plus me-1"></i> View &amp; Book
+          </a>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12">
+      <div class="alert alert-secondary">
+        <i class="bi bi-info-circle me-2"></i>
+        No doctors found{% if query %} matching "<strong>{{ query }}</strong>"{% endif %}.
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{% include "bookings/_pagination.html" %}
+{% endblock %}

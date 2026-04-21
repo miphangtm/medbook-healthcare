@@ -1,0 +1,92 @@
+{% extends "bookings/base.html" %}
+{% block title %}Appointments — Doctor View{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0"><i class="bi bi-clipboard2-pulse me-2"></i>My Appointments</h1>
+  {% if pending_count %}
+    <span class="badge bg-warning text-dark fs-6">
+      <i class="bi bi-clock-history me-1"></i>{{ pending_count }} pending
+    </span>
+  {% endif %}
+</div>
+
+{# Status filter tabs #}
+<ul class="nav nav-tabs mb-4">
+  <li class="nav-item">
+    <a class="nav-link {% if not status_filter %}active{% endif %}"
+       href="{% url 'bookings:doctor_appointments' %}">All</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if status_filter == 'PENDING' %}active{% endif %}"
+       href="{% url 'bookings:doctor_appointments' %}?status=PENDING">
+      Pending {% if pending_count %}<span class="badge bg-warning text-dark">{{ pending_count }}</span>{% endif %}
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if status_filter == 'CONFIRMED' %}active{% endif %}"
+       href="{% url 'bookings:doctor_appointments' %}?status=CONFIRMED">Confirmed</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if status_filter == 'CANCELLED' %}active{% endif %}"
+       href="{% url 'bookings:doctor_appointments' %}?status=CANCELLED">Cancelled</a>
+  </li>
+</ul>
+
+{% if page_obj.object_list %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle bg-white shadow-sm rounded">
+      <thead class="table-light">
+        <tr>
+          <th>Patient</th>
+          <th>Date &amp; Time</th>
+          <th>Duration</th>
+          <th>Reason</th>
+          <th>Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for appt in page_obj %}
+          <tr>
+            <td><strong>{{ appt.patient.full_name }}</strong></td>
+            <td>{{ appt.start|date:"D d M Y, H:i" }}</td>
+            <td>{{ appt.duration_minutes }} min</td>
+            <td class="text-muted small">{{ appt.reason|default:"—" }}</td>
+            <td>
+              <span class="badge status-{{ appt.status|lower }}">
+                {{ appt.get_status_display }}
+              </span>
+            </td>
+            <td class="text-end">
+              {% if appt.status == "PENDING" %}
+                {# Confirm uses a small inline form (POST) to avoid GET side-effects #}
+                <form method="post" action="{% url 'bookings:confirm_appointment' appt.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-success me-1">
+                    <i class="bi bi-check-circle me-1"></i>Confirm
+                  </button>
+                </form>
+                <a href="{% url 'bookings:decline_appointment' appt.pk %}"
+                   class="btn btn-sm btn-outline-danger">
+                  <i class="bi bi-x-circle me-1"></i>Decline
+                </a>
+              {% else %}
+                <span class="text-muted small">—</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% include "bookings/_pagination.html" %}
+
+{% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-calendar-x display-4 mb-3 d-block"></i>
+    <p>No {{ status_filter|lower|default:"" }} appointments found.</p>
+  </div>
+{% endif %}
+{% endblock %}

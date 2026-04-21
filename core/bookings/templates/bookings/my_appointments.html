@@ -1,0 +1,88 @@
+{% extends "bookings/base.html" %}
+{% block title %}My Appointments{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0"><i class="bi bi-calendar-check me-2"></i>My Appointments</h1>
+  <a href="{% url 'bookings:doctor_list' %}" class="btn btn-success btn-sm">
+    <i class="bi bi-plus-circle me-1"></i> Book New
+  </a>
+</div>
+
+{# Status filter tabs #}
+<ul class="nav nav-tabs mb-4">
+  <li class="nav-item">
+    <a class="nav-link {% if not status_filter %}active{% endif %}"
+       href="{% url 'bookings:my_appointments' %}">All</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if status_filter == 'PENDING' %}active{% endif %}"
+       href="{% url 'bookings:my_appointments' %}?status=PENDING">Pending</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if status_filter == 'CONFIRMED' %}active{% endif %}"
+       href="{% url 'bookings:my_appointments' %}?status=CONFIRMED">Confirmed</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if status_filter == 'CANCELLED' %}active{% endif %}"
+       href="{% url 'bookings:my_appointments' %}?status=CANCELLED">Cancelled</a>
+  </li>
+</ul>
+
+{% if page_obj.object_list %}
+  <div class="list-group shadow-sm">
+    {% for a in page_obj %}
+      <div class="list-group-item p-3 {% if a.status == 'CANCELLED' %}opacity-75{% endif %}">
+        <div class="d-flex justify-content-between align-items-start gap-3">
+          <div class="flex-grow-1">
+            <h6 class="mb-1">
+              {{ a.doctor.full_name }}
+              {% if a.doctor.specialty %}
+                <span class="text-muted fw-normal small">({{ a.doctor.specialty }})</span>
+              {% endif %}
+            </h6>
+            <p class="mb-1 small">
+              <i class="bi bi-clock me-1 text-muted"></i>
+              {{ a.start|date:"D d M Y, H:i" }} – {{ a.end|time:"H:i" }}
+              <span class="text-muted ms-1">({{ a.duration_minutes }} min)</span>
+            </p>
+            {% if a.reason %}
+              <p class="mb-0 small text-muted">
+                <i class="bi bi-chat-left-text me-1"></i>{{ a.reason }}
+              </p>
+            {% endif %}
+          </div>
+          <div class="text-end flex-shrink-0">
+            <span class="badge status-{{ a.status|lower }} mb-2 d-block">
+              {{ a.get_status_display }}
+            </span>
+            {% if a.status != "CANCELLED" %}
+              <a href="{% url 'bookings:appointment_reschedule' a.pk %}"
+                 class="btn btn-sm btn-outline-secondary d-block mb-1">
+                <i class="bi bi-arrow-repeat me-1"></i>Reschedule
+              </a>
+              <a href="{% url 'bookings:appointment_cancel' a.pk %}"
+                 class="btn btn-sm btn-outline-danger d-block">
+                <i class="bi bi-x-circle me-1"></i>Cancel
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% include "bookings/_pagination.html" %}
+
+{% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-calendar-x display-4 mb-3 d-block"></i>
+    <p>
+      No {{ status_filter|lower|default:"" }} appointments found.
+    </p>
+    <a href="{% url 'bookings:doctor_list' %}" class="btn btn-success">
+      <i class="bi bi-search me-1"></i> Find a Doctor
+    </a>
+  </div>
+{% endif %}
+{% endblock %}

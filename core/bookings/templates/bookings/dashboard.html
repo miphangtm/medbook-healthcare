@@ -1,0 +1,116 @@
+{% extends "bookings/base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">
+    Welcome back, {{ request.user.get_full_name|default:request.user.username }}
+  </h1>
+  <span class="badge bg-primary fs-6">
+    {% if is_doctor %}Doctor{% elif is_patient %}Patient{% else %}No role{% endif %}
+  </span>
+</div>
+
+{# ── Doctor dashboard ─────────────────────────────────────────────────── #}
+{% if is_doctor %}
+
+  {% if pending_count %}
+    <div class="alert alert-warning d-flex align-items-center mb-4">
+      <i class="bi bi-clock-history fs-5 me-2"></i>
+      You have <strong class="mx-1">{{ pending_count }}</strong> pending appointment{{ pending_count|pluralize }} awaiting confirmation.
+      <a href="{% url 'bookings:doctor_appointments' %}?status=PENDING" class="btn btn-sm btn-warning ms-auto">Review</a>
+    </div>
+  {% endif %}
+
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-calendar-day me-2"></i>Today's Schedule</span>
+      <a href="{% url 'bookings:doctor_appointments' %}" class="btn btn-sm btn-outline-primary">All Appointments</a>
+    </div>
+    <div class="card-body p-0">
+      {% if doctor_schedule %}
+        <ul class="list-group list-group-flush">
+          {% for a in doctor_schedule %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ a.start|time:"H:i" }} – {{ a.end|time:"H:i" }}</strong>
+                &nbsp;·&nbsp; {{ a.patient.full_name }}
+                {% if a.reason %}
+                  <span class="text-muted small ms-1">— {{ a.reason }}</span>
+                {% endif %}
+              </div>
+              <span class="badge status-{{ a.status|lower }}">{{ a.get_status_display }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted p-3 mb-0">No appointments scheduled for today.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-sm-6">
+      <a href="{% url 'bookings:availability_create' %}" class="btn btn-primary w-100">
+        <i class="bi bi-plus-circle me-1"></i> Add Availability
+      </a>
+    </div>
+    <div class="col-sm-6">
+      <a href="{% url 'bookings:availability_list' %}" class="btn btn-outline-secondary w-100">
+        <i class="bi bi-calendar-week me-1"></i> Manage Availability
+      </a>
+    </div>
+  </div>
+
+{% endif %}
+
+{# ── Patient dashboard ────────────────────────────────────────────────── #}
+{% if is_patient %}
+
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-calendar-check me-2"></i>Upcoming Appointments</span>
+      <a href="{% url 'bookings:my_appointments' %}" class="btn btn-sm btn-outline-primary">View All</a>
+    </div>
+    <div class="card-body p-0">
+      {% if upcoming %}
+        <ul class="list-group list-group-flush">
+          {% for a in upcoming %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ a.start|date:"D d M, H:i" }}</strong>
+                &nbsp;·&nbsp; {{ a.doctor.full_name }}
+                {% if a.doctor.specialty %}
+                  <span class="text-muted small">({{ a.doctor.specialty }})</span>
+                {% endif %}
+              </div>
+              <span class="badge status-{{ a.status|lower }}">{{ a.get_status_display }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted p-3 mb-0">
+          No upcoming appointments.
+          <a href="{% url 'bookings:doctor_list' %}">Book one now</a>.
+        </p>
+      {% endif %}
+    </div>
+  </div>
+
+  <a href="{% url 'bookings:doctor_list' %}" class="btn btn-success">
+    <i class="bi bi-search me-1"></i> Find a Doctor
+  </a>
+
+{% endif %}
+
+{# ── No role assigned ─────────────────────────────────────────────────── #}
+{% if not is_doctor and not is_patient %}
+  <div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>
+    Your account has no role assigned. Please
+    <a href="{% url 'accounts:register' %}">register</a> as a patient or doctor,
+    or contact an administrator.
+  </div>
+{% endif %}
+
+{% endblock %}
